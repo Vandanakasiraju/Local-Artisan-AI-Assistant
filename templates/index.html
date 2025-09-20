@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Artisan AI Prototype</title>
+    <style>
+        body { font-family: sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; }
+        h2 { border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        textarea, input[type="text"] { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; box-sizing: border-box; }
+        .output-box { border: 1px dashed #007bff; padding: 15px; background-color: #f0f8ff; min-height: 100px; margin-top: 10px; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; cursor: pointer; }
+        .chat-container { border: 1px solid #ddd; padding: 15px; height: 300px; overflow-y: scroll; margin-top: 20px; background-color: #f9f9f9; }
+        .chat-message { margin-bottom: 10px; }
+        .user { text-align: right; color: #007bff; }
+        .ai { text-align: left; color: #28a745; }
+    </style>
+</head>
+<body>
+
+    <h1>Artisan Marketplace AI Assistant Prototype</h1>
+    <p>This demo shows two core features: automated listing creation and instant customer FAQ support.</p>
+
+    <h2>1. Automated Listing Creator</h2>
+    <p>Paste product keywords, materials, and key selling points to generate a draft listing.</p>
+    
+    <form id="listingForm">
+        <input type="text" id="keywords" name="keywords" placeholder="E.g., Walnut wood, food-safe, large bowl, gift" required>
+        <button type="submit">Generate Listing Draft</button>
+    </form>
+
+    <div class="output-box">
+        <p><strong>Generated Title:</strong> <span id="outputTitle">Awaiting input...</span></p>
+        <p><strong>Generated Description:</strong> <span id="outputDescription">Awaiting input...</span></p>
+    </div>
+
+    <hr>
+
+    <h2>2. Instant FAQ Chatbot</h2>
+    <p>Test the chatbot's ability to answer common customer questions.</p>
+    
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-message ai">Assistant: Welcome! I'm the Marketplace Assistant. I can answer questions about shipping, returns, or materials.</div>
+    </div>
+    
+    <form id="chatForm">
+        <input type="text" id="chatInput" placeholder="Ask a question (e.g., How long is shipping?)" required>
+        <button type="submit">Send</button>
+    </form>
+
+
+    <script>
+        // --- Logic for Feature 1 (Listing Creator) ---
+        document.getElementById('listingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const keywords = document.getElementById('keywords').value;
+
+            fetch('/generate', {
+                method: 'POST',
+                body: new URLSearchParams(new FormData(e.target))
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('outputTitle').textContent = data.title;
+                document.getElementById('outputDescription').textContent = data.description;
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        // --- Logic for Feature 2 (Chatbot) ---
+        document.getElementById('chatForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const inputField = document.getElementById('chatInput');
+            const userMessage = inputField.value;
+            const chatContainer = document.getElementById('chatContainer');
+            
+            // Display user message
+            chatContainer.innerHTML += `<div class="chat-message user">You: ${userMessage}</div>`;
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: userMessage })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display AI response
+                chatContainer.innerHTML += `<div class="chat-message ai">Assistant: ${data.response}</div>`;
+                chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom
+            })
+            .catch(error => console.error('Error:', error));
+
+            inputField.value = ''; // Clear input
+        });
+    </script>
+
+</body>
+</html>
